@@ -1,16 +1,22 @@
 import EmployeeForm from '@/components/EmployeeForm'
+import { prisma } from '@/lib/prisma'
 
 async function getEmployee(id) {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/employees/${id}`,
-    { cache: 'no-store' }
-  )
-  if (!res.ok) return null
-  return res.json()
+  try {
+    const employee = await prisma.employee.findUnique({
+      where: { id }
+    })
+    return employee
+  } catch (error) {
+    console.error('Failed to fetch employee:', error)
+    return null
+  }
 }
 
 export default async function EditEmployeePage({ params }) {
-  const employee = await getEmployee(params.id)
+  const { id } = await params        // ← await params (Next.js 15 change)
+  const employee = await getEmployee(id)
+
   if (!employee) return <p className="text-gray-500">Employee not found.</p>
 
   return (
